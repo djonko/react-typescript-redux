@@ -1,11 +1,12 @@
-import { useState } from "react";
+
 import React, { createContext } from "react";
 import { useContext } from "react";
+import { useReducer } from "react";
 
 interface CartItem {
     id: number
     name: string,
-    price: number, 
+    price: number,
     quantity: number
 }
 
@@ -22,25 +23,40 @@ const defaultStateValue: AppStateValue = { cart: { items: [] } }
 export const AppStateContext = createContext(defaultStateValue);
 
 //useContext is a Hook to get value from context 
-export const useSetState = () => {
-    const setState = useContext(AppSetStateContext)
-    if (!setState)
-        throw new Error("useSetState was call outside of the AppSetStateContext provider")
-    return setState
+export const useStateDispatchAction = () => {
+    const dispatchAction = useContext(AppDispatchActionContext)
+    if (!dispatchAction)
+        throw new Error("useDispatchAction was call outside of the AppSetStateContext provider")
+    return dispatchAction
 }
 
 //reducer section ------------------------------------------------------------------------------------------------------------------------
 interface ActionType<T> {
     type: T
 }
-interface AddToCartAction extends ActionType<'ADD_TO_CART'>{
+interface AddToCartAction extends ActionType<'ADD_TO_CART'> {
     payload: {
-        item: CartItem
+        item: Omit<CartItem, 'quantity'>
     }
 }
-const reducer = (state: AppStateValue, action: AddToCartAction) =>{
-    if (action.type === 'ADD_TO_CART'){
-
+const reducer = (state: AppStateValue, action: AddToCartAction) => {
+    if (action.type === 'ADD_TO_CART') {
+        const itemToAdd = action.payload.item
+        const itemExists = state.cart.items.find((item) => item.id === itemToAdd.id)
+        return {
+            cart: {
+                items:
+                    itemExists ? // if true
+                        state.cart.items.map((item) => {
+                            if (item.id === itemToAdd.id) {
+                                return { ...item, quantity: itemExists.quantity + 1 }
+                            }
+                            return item
+                        })
+                        : [ //if false
+                            ...state.cart.items, {...itemToAdd, quantity: 1} ]
+            }
+        }
     }
     return state
 }
@@ -48,15 +64,15 @@ const reducer = (state: AppStateValue, action: AddToCartAction) =>{
 
 
 // 4.2) create another context provider for 'setState'
-export const AppSetStateContext = createContext<React.Dispatch<React.SetStateAction<AppStateValue>> | undefined>(undefined)
+export const AppDispatchActionContext = createContext<React.Dispatch<AddToCartAction> | undefined>(undefined)
 const AppStateProvider: React.FC = ({ children }) => {
-    const [state, setState] = useState(defaultStateValue);
+    const [state, dispatchAction] = useReducer(reducer, defaultStateValue);
     // {children}: wrap children components in AppStateContext (a provider) so all childs will have state share by AppStateContext
     return (
         <AppStateContext.Provider value={state}>
-            <AppSetStateContext.Provider value={setState}>
+            <AppDispatchActionContext.Provider value={dispatchAction}>
                 {children}
-            </AppSetStateContext.Provider>
+            </AppDispatchActionContext.Provider>
         </AppStateContext.Provider>
     )
 }

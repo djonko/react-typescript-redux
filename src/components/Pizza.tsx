@@ -1,5 +1,5 @@
 import React from "react";
-import { useSetState } from "./AppState";
+import { useStateDispatchAction } from "./AppState";
 import PizzaCss from './Pizza.module.css'
 
 interface Pizza {
@@ -14,52 +14,15 @@ interface Props {
 
 
 const Pizza: React.FC<Props> = ({ pizza }) => {
-    const setState = useSetState()
+    const dispatchAction = useStateDispatchAction()
 
     const handleAddToCartClick = () => {
-        setState((prevState) => {
-            const itemExists = prevState.cart.items.find((item) => item.id === pizza.id)
-
-            /*
-            return {
-                ...prevState,
-                cart: {
-                    ...prevState.cart,
-                    items: itemExists
-                        ? prevState.cart.items.map((item) => {
-                            if (item.id === pizza.id) {
-                                return { ...item, quantity: itemExists.quantity + 1}
-                            }
-                            return item
-                        }
-                        )
-
-                        :
-                        [
-                            ...prevState.cart.items,
-                            { id: pizza.id, name: pizza.name, price: pizza.price, quantity: 1 }
-                        ]
-                }
-            }*/
-
-            return {
-                cart: {
-                    items:
-                        itemExists ? // if true
-                            prevState.cart.items.map((item) => {
-                                if (item.id === pizza.id) {
-                                    return { ...item, quantity: itemExists.quantity + 1 }
-                                }
-                                return item
-                            }) 
-                            : [ //if false
-                                ...prevState.cart.items,
-                                { id: pizza.id, name: pizza.name, price: pizza.price, quantity: 1 }
-                            ]
-                }
+        dispatchAction({
+            type: 'ADD_TO_CART',
+            payload: {
+                item: {id: pizza.id, name: pizza.name, price: pizza.price}
             }
-
-        });
+        })
     };
 
     return (
