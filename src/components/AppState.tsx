@@ -1,5 +1,6 @@
 
 import React, { createContext } from "react";
+import { useEffect } from "react";
 import { useContext } from "react";
 import { useReducer } from "react";
 
@@ -39,7 +40,12 @@ interface AddToCartAction extends ActionType<'ADD_TO_CART'> {
         item: Omit<CartItem, 'quantity'>
     }
 }
-const reducer = (state: AppStateValue, action: AddToCartAction) => {
+interface InitializeCartAction extends ActionType<'INITIALIZE_CART'> {
+    payload: {
+        cart: AppStateValue['cart']
+    }
+}
+const reducer = (state: AppStateValue, action: AddToCartAction | InitializeCartAction) => {
     if (action.type === 'ADD_TO_CART') {
         const itemToAdd = action.payload.item
         const itemExists = state.cart.items.find((item) => item.id === itemToAdd.id)
@@ -54,9 +60,12 @@ const reducer = (state: AppStateValue, action: AddToCartAction) => {
                             return item
                         })
                         : [ //if false
-                            ...state.cart.items, {...itemToAdd, quantity: 1} ]
+                            ...state.cart.items, { ...itemToAdd, quantity: 1 }]
             }
         }
+    } else if (action.type === 'INITIALIZE_CART') {
+        const cartToAdd = action.payload.cart
+        return { ...state, cart: cartToAdd }
     }
     return state
 }
@@ -67,6 +76,23 @@ const reducer = (state: AppStateValue, action: AddToCartAction) => {
 export const AppDispatchActionContext = createContext<React.Dispatch<AddToCartAction> | undefined>(undefined)
 const AppStateProvider: React.FC = ({ children }) => {
     const [state, dispatchAction] = useReducer(reducer, defaultStateValue);
+
+   
+    // useEffect to retrieve data from local
+    useEffect(() => {
+        const carte = window.localStorage.getItem('cart')
+        if(carte){
+            const obCarte = JSON.parse(carte)
+            dispatchAction({type: 'INITIALIZE_CART', payload: {cart: obCarte}})
+        }
+    }, []);
+
+     // useEffect to save
+     useEffect(() => {
+        window.localStorage.setItem('cart', JSON.stringify(state.cart))
+    }, [state.cart]);
+    // end useEffect
+
     // {children}: wrap children components in AppStateContext (a provider) so all childs will have state share by AppStateContext
     return (
         <AppStateContext.Provider value={state}>
