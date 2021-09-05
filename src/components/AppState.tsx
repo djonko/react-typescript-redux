@@ -3,13 +3,9 @@ import React, { createContext } from "react";
 import { useEffect } from "react";
 import { useContext } from "react";
 import { useReducer } from "react";
+import { CartItem } from "../Types";
 
-interface CartItem {
-    id: number
-    name: string,
-    price: number,
-    quantity: number
-}
+
 
 //2) let descripe the state of pizza we want to share between our component
 interface AppStateValue {
