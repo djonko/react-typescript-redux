@@ -7,6 +7,7 @@ import Cart from './Cart'
 import AppStateProvider from './AppState'
 import SpecialOffer from './SpecialOffer'
 import PizzaItem from './Pizza'
+import SpecialOffer2 from './SpecialOffer2'
 const App = () => {
     const specialOfferPizza = pizzas.find((p)=> p.specialOffer );
     
@@ -18,7 +19,7 @@ const App = () => {
                 <div className={AppCss.siteTitle} > Delicious Pizza </div>
                 <Cart/>
             </div>
-            {specialOfferPizza && <SpecialOffer pizza={specialOfferPizza} />}
+            {specialOfferPizza && <SpecialOffer2 pizza={specialOfferPizza} />}
             <ul className= {AppCss.pizzaList}>
                 {pizzas.map((p) => { return <PizzaItem key={p.id} pizza={p} ></PizzaItem> })}
             </ul>

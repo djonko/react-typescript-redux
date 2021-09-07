@@ -3,7 +3,7 @@ import { useStateDispatchAction } from "./AppState";
 import { CartItem } from "../Types";
 
 export interface AddToCartProps {
-    addToCart: (item: Omit<CartItem, 'quantity'>) => void; 
+    addToCart: (item: Omit<CartItem, 'quantity'>) => void;
 }
 
 export function withAddToCart<OriginalProps extends AddToCartProps>(ChildComponent: React.ComponentType<OriginalProps>) {
@@ -23,4 +23,36 @@ export function withAddToCart<OriginalProps extends AddToCartProps>(ChildCompone
         return (<ChildComponent {...props as OriginalProps} addToCart={handleAddToCartClick} />)
     }
     return AddTocartHOC
+}
+
+// render props section
+
+export interface AddRenderProp {
+    children: (props: AddToCartProps) => JSX.Element;
+}
+export const WithAddToCartRenderProps: React.FC<AddRenderProp> = ({ children }) => {
+
+    const dispatchAction = useStateDispatchAction()
+    const addToCart: AddToCartProps['addToCart'] = (item) => {
+        dispatchAction({
+            type: 'ADD_TO_CART',
+            payload: {
+                item,
+            }
+        })
+    };
+    return children({addToCart});
+};
+
+export const useAddToCart = () => {
+    const dispatchAction = useStateDispatchAction()
+    const addToCart: AddToCartProps['addToCart'] = (item) => {
+        dispatchAction({
+            type: 'ADD_TO_CART',
+            payload: {
+                item,
+            }
+        })
+    };
+    return addToCart
 }
